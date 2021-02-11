@@ -58,8 +58,8 @@ CircleEstimate CircleEstimator::ransacEstimator(const Eigen::Matrix2Xf& pts) con
 
     // Check if this estimate gave a better result.
     // Todo 8: Remove break and perform the correct test!
-    break;     // Remove!
-    if (false) // Perform the correct test!
+    // break;     // Remove!
+    if (tst_num_inliers > best_num_inliers) // Perform the correct test!
     {
       // Update circle with largest inlier set.
       best_circle = tst_circle;

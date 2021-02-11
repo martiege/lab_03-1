@@ -9,7 +9,7 @@ using DurationInMs = std::chrono::duration<double, std::milli>;
 void lab3()
 {
   // Open video stream from camera.
-  const int camera_id = 0; // Should be 0 or 1 on the lab PCs.
+  const int camera_id = 2; // Should be 0 or 1 on the lab PCs.
   cv::VideoCapture cap(camera_id);
   if (!cap.isOpened())
   {
@@ -23,7 +23,7 @@ void lab3()
   // Construct the corner detector.
   // Play around with the parameters!
   // When the second argument is true, additional debug visualizations are shown.
-  CornerDetector det(CornerMetric::harris, true);
+  CornerDetector det(CornerMetric::harmonic_mean, false);
 
   // Construct the circle estimator.
   CircleEstimator estimator;
@@ -66,7 +66,7 @@ void lab3()
     drawCornerResult(vis_img, corners, corner_proc_duration.count());
     drawCircleResult(vis_img, corners, estimate, circle_proc_duration.count());
     cv::imshow(win_name, vis_img);
-    if (cv::waitKey(30) >= 0) break;
+    if (cv::waitKey(30) == 'q') break;
   }
 }
 

@@ -21,17 +21,20 @@ std::vector<cv::KeyPoint> CornerDetector::detect(const cv::Mat& image) const
   cv::Mat Ix;
   cv::Mat Iy;
 
-//  cv::sepFilter2D(image, Ix, CV_32F, ?, ?);
-//  cv::sepFilter2D(image, Iy, CV_32F, ?, ?);
+  cv::sepFilter2D(image, Ix, CV_32F, dg_kernel_, g_kernel_);
+  cv::sepFilter2D(image, Iy, CV_32F, g_kernel_, dg_kernel_);
 
   // Compute the elements of M; A, B and C from Ix and Iy.
   // Todo 3.1: Compute the elements of M; A, B and C from Ix and Iy.
-  cv::Mat A;
-  cv::Mat B;
-  cv::Mat C;
+  cv::Mat A = Ix.mul(Ix);
+  cv::Mat B = Ix.mul(Iy);
+  cv::Mat C = Iy.mul(Iy);
 
   // Apply the windowing gaussian win_kernel_ on A, B and C.
   // Todo 3.2: Apply the windowing gaussian.
+  cv::sepFilter2D(A, A, CV_32F, win_kernel_, win_kernel_); 
+  cv::sepFilter2D(B, B, CV_32F, win_kernel_, win_kernel_); 
+  cv::sepFilter2D(C, C, CV_32F, win_kernel_, win_kernel_); 
 
   // Compute corner response.
   // Todo 4: Finish all the corner response functions.
@@ -50,14 +53,18 @@ std::vector<cv::KeyPoint> CornerDetector::detect(const cv::Mat& image) const
 
   // Todo 5: Dilate image to make each pixel equal to the maximum in the neighborhood.
   cv::Mat local_max;
+  cv::dilate(response, local_max, win_kernel_); 
 
   // Todo 6: Compute the threshold.
   // Compute the threshold by using quality_level_ on the maximum response.
   double max_val = 10.0;
+  cv::minMaxLoc(local_max, NULL, &max_val, NULL, NULL); 
 
   // Todo 7: Extract local maxima above threshold.
-  cv::Mat is_strong_and_local_max; // = response > threshold and response == local_max
+  cv::Mat is_strong_and_local_max = (response > (max_val * quality_level_)) & (response == local_max); 
+  // = response > threshold and response == local_max
   std::vector<cv::Point> max_locations;
+  cv::findNonZero(is_strong_and_local_max, max_locations);
 
   // ----- Now detect() is finished! -----
   // Add all strong local maxima as keypoints.
@@ -89,20 +96,22 @@ cv::Mat CornerDetector::harrisMetric(const cv::Mat& A, const cv::Mat& B, const c
   // Todo 4.1: Finish the Harris metric.
   const float alpha = 0.06f;
 
-  return cv::Mat();
+  return (A.mul(C) - B.mul(B)) - alpha * (A + C).mul(A + C);
 }
 
 cv::Mat CornerDetector::harmonicMeanMetric(const cv::Mat& A, const cv::Mat& B, const cv::Mat& C) const
 {
   // Compute the Harmonic mean metric for each pixel.
   // Todo 4.2: Finish the Harmonic Mean metric.
-  return cv::Mat();
+  return (A.mul(C) - B.mul(B)) / (A + C);
 }
 
 cv::Mat CornerDetector::minEigenMetric(const cv::Mat& A, const cv::Mat& B, const cv::Mat& C) const
 {
   // Compute the Min. Eigen metric for each pixel.
   // Todo 4.3: Finish minimum eigenvalue metric.
-  return cv::Mat();
+  cv::Mat root; 
+  cv::sqrt(4 * B.mul(B) + (A - C).mul(A - C), root); 
+  return 0.5 * ((A + C) - root);
 }
 
